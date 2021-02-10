@@ -111,6 +111,7 @@ func (app *App) index(w http.ResponseWriter, r *http.Request) {
 	ip := q.Get("ip")
 	firstSeen := q.Get("firstseen")
 	lastSeen := q.Get("lastseen")
+	jsonMode := q.Get("json")
 	_, allResults := q["all"]
 
 	results, err := app.db.ResultData(ip, firstSeen, lastSeen)
@@ -122,6 +123,12 @@ func (app *App) index(w http.ResponseWriter, r *http.Request) {
 	sub, err := app.db.LoadSubmission(sqlite.SQLFilter{})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if jsonMode != "" {
+		r.Header.Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(results)
 		return
 	}
 
